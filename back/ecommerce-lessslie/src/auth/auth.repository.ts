@@ -10,5 +10,4 @@ contraseña:" contraseña123"
 async getAuth(){
     return this.auth
 }
-    
 }

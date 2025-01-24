@@ -2,8 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from 't
 import { Product } from './products.entity';
 
 
-@Entity('categories')
+@Entity({name: 'categories',})
+
 export class Category {
+  
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

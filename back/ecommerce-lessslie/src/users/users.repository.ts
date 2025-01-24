@@ -1,113 +1,67 @@
 import { Injectable } from '@nestjs/common';
-import { IUser } from './user.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'entities/users.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersRepository {
-  findEmail(email: string) {
-    return this.users.find((user)=> user.email === email);
-  }
-  // findEmail(email: string) {
-  //     throw new Error('Method not implemented.');
-  // }
-  private users: IUser[] = [
-    {
-      id: 1,
-      email: 'juan.perez@example.com',
-      name: 'Juan',
-      password: 'contraseña123',
-      address: 'Av. Corrientes 1234, Buenos Aires',
-      phone: 1112345678,
-      country: 'Argentina',
-      city: 'Buenos Aires',
-    },
-    {
-      id: 2,
-      email: 'maria.gonzalez@example.com',
-      name: 'María',
-      password: 'segura123',
-      address: 'Calle Falsa 456, Córdoba',
-      phone: 351 - 5678 - 1234,
-      country: 'Argentina',
-      city: 'Córdoba',
-    },
-    {
-      id: 3,
-      email: 'pedro.martinez@example.com',
-      name: 'Pedro',
-      password: 'miContraseña',
-      address: 'Av. Libertador 789, Mendoza',
-      phone: 261 - 8765 - 4321,
-      country: 'Argentina',
-      city: 'Mendoza',
-    },
-    {
-      id: 4,
-      email: 'lucia.rodriguez@example.com',
-      name: 'Lucia',
-      password: 'lucia123',
-      address: 'Calle San Martín 321, Rosario',
-      phone: 341 - 4321 - 8765,
-      country: 'Argentina',
-      city: 'Rosario',
-    },
-    {
-      id: 5,
-      email: 'jose.sanchez@example.com',
-      name: 'Jose',
-      password: 'jose123',
-      address: 'Av. Rivadavia 654, La Plata',
-      phone: 221 - 9876 - 5432,
-      country: 'Argentina',
-      city: 'La Plata',
-    },
-  ];
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
   async getUsers(
-    page:string,
-    limit:string
-  ): Promise<Omit<IUser, 'password'>[]> {
-    const userWithoutPass = this.users.map((user) => {
+    page: string,
+    limit: string,
+  ): Promise<Omit<User, 'password'>[]> {
+    const users = await this.userRepository.find();
+
+    const userWithoutPass = users.map((user) => {
       const { password, ...cleanUser } = user;
       return cleanUser;
     });
     return userWithoutPass;
   }
 
-  async getById(id: string): Promise<Omit<IUser, 'password'>> {
-    const foundUser = this.users.find((user) => user.id === Number(id));
-
+  async getById(id: string): Promise<Omit<User, 'password'>> {
+    const foundUser = await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        orders: true,
+      },
+    });
     if (!foundUser) throw new Error(`El usuario de id ${id} no fue econtrado`);
+
     const { password, ...userWithoutPassword } = foundUser;
 
     return userWithoutPassword;
   }
 
-  async getByName(name: string): Promise<IUser> {
-    return this.users.find((user) => user.name === name);
+  async createUser(user: User): Promise<string> {
+    const newUser = await this.userRepository.save(user);
+    return newUser.id;
   }
 
-  async createUser(user: IUser): Promise<number> {
-    this.users.push(user);
-    return user.id;
+  async upDateUser(id: string, user: User): Promise<string> {
+    await this.userRepository.update(id, user);
+    const updatedUser = await this.userRepository.findOneBy({ id });
+    return updatedUser.id;
   }
 
-  async upDateUser(id: string, user: IUser): Promise<number> {
-    this.users = this.users.map((previusUser) => {
-      if (previusUser.id === Number(id)) {
-        return user;
-      } else {
-        return previusUser;
-      }
-    });
-    return user.id;
+  async deleteUser(id: string): Promise<string> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+    this.userRepository.remove(user);
+    return `El usuarion con id:${user.id} eliminado exitosamente`;
   }
 
-  async deleteUser(id: string): Promise<number> {
-    this.users = this.users.filter((user) => user.id !== Number(id));
-    return Number(id);
+  async findEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({ where: { email } });
   }
 
-
-
-
+  // async getByName(name: string): Promise<User> {
+  //   return this.users.find((user) => user.name === name);
+  // }
 }

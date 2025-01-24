@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
-import { IUser } from './user.interface';
+import { User } from 'entities/users.entity';
+
 
 @Injectable()
 export class UsersService {
   constructor(
     private usersRepository: UsersRepository,
-    @Inject('API_USERS') private apiUsers: IUser[],
+    @Inject('API_USERS') private apiUsers: User[],
   ) {}
 
   async getUsers(page: string, limit: string) {
@@ -17,15 +18,15 @@ export class UsersService {
     return this.usersRepository.getById(id);
   }
 
-  getUserByName(name: string) {
-    return this.usersRepository.getByName(name);
-  }
+  // getUserByName(name: string) {
+  //   return this.usersRepository.getByName(name);
+  // }
 
-  createUser(newuser: IUser) {
+  createUser(newuser: User) {
     return this.usersRepository.createUser(newuser);
   }
 
-  upDateUser(id: string, updatedUser: IUser) {
+  upDateUser(id: string, updatedUser: User) {
     return this.usersRepository.upDateUser(id, updatedUser);
   }
 

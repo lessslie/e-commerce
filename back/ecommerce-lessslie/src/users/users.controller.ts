@@ -3,24 +3,15 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
-  HttpCode,
   Param,
   Post,
   Put,
   Query,
-  Req,
-  Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-
-import { request, Request, Response } from 'express';
-
-import { IUser } from './user.interface';
-import { profile } from 'console';
-import { AuthGuard } from 'src/guards/auth.guards';
+import { User } from 'entities/users.entity';
+import { AuthGuard } from 'guards/auth.guards';
 
 @Controller('users')
 export class UsersController {
@@ -31,9 +22,8 @@ export class UsersController {
   getUsers(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-  ): Promise<Omit<IUser,'password'>[]> {
+  ): Promise<Omit<User, 'password'>[]> {
     return this.usersService.getUsers(page, limit);
-
   }
 
   @Get(':id')
@@ -46,7 +36,7 @@ export class UsersController {
   @Post()
   createUser(
     @Body()
-    user: IUser,
+    user: User,
   ) {
     console.log('dentro del endpoint:', user);
     return this.usersService.createUser(user);
@@ -58,7 +48,7 @@ export class UsersController {
     @Param('id')
     id: string,
     @Body()
-    user: IUser,
+    user: User,
   ) {
     return this.usersService.upDateUser(id, user);
   }
@@ -66,8 +56,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   deleteUser(@Param('id') id: string) {
-    console.log("Usuario con id:", id, "eliminado");
+    console.log('Usuario con id:', id, 'eliminado');
     return this.usersService.deleteUser(id);
   }
-
 }

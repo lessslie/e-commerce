@@ -16,12 +16,14 @@ export class Order {
 
   @Column()
   date: Date;
-
-  @ManyToOne(() => User, (user) => user.orders)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
+  
   @OneToOne(() => OrderDetail, (orderDetail) => orderDetail.order)
     orderDetails: OrderDetail;
+  
+    @ManyToOne(() => User, (user) => user.orders)
+  
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
 
 }
