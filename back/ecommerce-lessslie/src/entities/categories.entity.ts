@@ -2,6 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinColumn } from 't
 import { Product } from './products.entity';
 
 
+
+
 @Entity({name: 'categories',})
 
 export class Category {
@@ -13,6 +15,8 @@ export class Category {
   name: string;
 
 @OneToMany(()=>Product, product=>product.category)
+
 @JoinColumn()
+
 products: Product[];
 }

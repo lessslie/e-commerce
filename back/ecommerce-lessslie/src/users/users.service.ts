@@ -1,36 +1,44 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
-import { User } from 'entities/users.entity';
+import { User } from 'src/entities/users.entity';
+
 
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private usersRepository: UsersRepository,
-    @Inject('API_USERS') private apiUsers: User[],
-  ) {}
-
-  async getUsers(page: string, limit: string) {
-    return this.usersRepository.getUsers(page, limit);
+  constructor(private readonly usersRepository: UsersRepository) {}
+  
+  async getUsersService() {
+    return await this.usersRepository.getUsers();
+  }
+  getUserById(id:string){
+    return this.usersRepository.getUserById(id);
   }
 
-  getUserById(id) {
-    return this.usersRepository.getById(id);
+  createUser(newUser:User){
+    return this.usersRepository.createUser(newUser);
   }
 
-  // getUserByName(name: string) {
-  //   return this.usersRepository.getByName(name);
-  // }
 
-  createUser(newuser: User) {
-    return this.usersRepository.createUser(newuser);
+
+
+  updateUser(id:string,updateUser:User){
+    return this.usersRepository.updateUser(id,updateUser);
   }
 
-  upDateUser(id: string, updatedUser: User) {
-    return this.usersRepository.upDateUser(id, updatedUser);
-  }
-
-  deleteUser(id: string) {
+  deleteUser(id:string){
     return this.usersRepository.deleteUser(id);
   }
+
+
+
+
+
+
+
+
+
+
+
+
 }

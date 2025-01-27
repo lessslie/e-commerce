@@ -1,13 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Order } from './orders.entity';
-import { v4 as uuidv4 } from 'uuid';
 
 @Entity({
   name: 'users',
 })
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string ;
+  id: string;
 
   @Column({ type: 'varchar', length: 50, nullable: false })
   name: string;
@@ -18,13 +17,13 @@ export class User {
   @Column({ type: 'varchar', length: 20, nullable: false })
   password: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int'})
   phone: number;
 
   @Column({ type: 'varchar', length: 50 })
   country: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text' })
   address: string;
 
   @Column({ type: 'varchar', length: 50 })
@@ -33,7 +32,3 @@ export class User {
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 }
-function uuid(): string {
-  throw new Error('Function not implemented.');
-}
-

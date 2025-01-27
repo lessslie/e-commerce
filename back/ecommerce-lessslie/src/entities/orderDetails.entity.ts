@@ -10,12 +10,13 @@ import {
 import { Order } from './orders.entity';
 import { Product } from './products.entity';
 
-@Entity({name:'order_details'})
+@Entity({ name: 'order_details' })
 export class OrderDetail {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({
+    name: 'total_price', 
     type: 'decimal',
     precision: 10,
     scale: 2,

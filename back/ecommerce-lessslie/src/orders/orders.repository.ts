@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'entities/users.entity';
+import { OrderDetail } from '../entities/orderDetails.entity';
+import { Order } from '../entities/orders.entity';
+import { Product } from '../entities/products.entity';
+import { User } from '../entities/users.entity';
+
 import { MoreThanOrEqual, Repository } from 'typeorm';
-import { Order } from 'entities/orders.entity';
-import { OrderDetail } from 'entities/orderDetails.entity';
-import { Product } from 'entities/products.entity';
 
 @Injectable()
 export class OrdersRepository {
@@ -14,10 +15,21 @@ export class OrdersRepository {
     @InjectRepository(OrderDetail)
     private orderDetailsRepository: Repository<OrderDetail>,
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private usersRepository: Repository<User>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
   ) {}
+
+  async getOrders(): Promise<Order[]> {
+    return this.ordersRepository.find({
+      relations: {
+        user: true,
+        orderDetails: {
+          products: true,
+        },
+      },
+    });
+  }
 
   async getOrder(id: string): Promise<Order> {
     const order = await this.ordersRepository.findOne({
@@ -28,13 +40,13 @@ export class OrdersRepository {
         },
       },
     });
-    if (!order) throw new Error(`Order not found`);
+    if (!order) throw new Error(`No se encontro ninguna orden para ese id`);
     return order;
   }
 
   async addOrder(userId: string, products: Partial<Product>[]): Promise<Order> {
     let totalPrice = 0;
-    const user = await this.userRepository.findOneBy({ id: userId });
+    const user = await this.usersRepository.findOneBy({ id: userId });
     if (!user) {
       throw new Error(`User not found`);
     }
@@ -58,7 +70,10 @@ export class OrdersRepository {
         if (existingproduct.stock < 1) {
           throw new Error(`No hay stock de ese producto`);
         }
-        totalPrice += existingproduct.price;
+        // totalPrice += existingproduct.price;
+        totalPrice = Number(
+          (totalPrice + Number(existingproduct.price)).toFixed(2),
+        );
 
         await this.productRepository.update(
           { id: product.id },
@@ -70,17 +85,24 @@ export class OrdersRepository {
 
     const orderDetail = new OrderDetail();
 
-    orderDetail.price = Number(Number(totalPrice).toFixed(2));
+    // orderDetail.price = Number(Number(totalPrice).toFixed(2));
+    // orderDetail.products = productsArray;
+    // orderDetail.order = newOrder;
+    orderDetail.price = totalPrice;
     orderDetail.products = productsArray;
     orderDetail.order = newOrder;
-
     await this.orderDetailsRepository.save(orderDetail);
 
-    return await this.ordersRepository.findOne({
-      where: { id: newOrder.id },
-      relations: {
-        orderDetails: true,
-      },
-    });
+    return await this.ordersRepository
+      .findOne({
+        where: { id: newOrder.id },
+        relations: {
+          orderDetails: true,
+        },
+      })
+      .then((order) => {
+        if (!order) throw new Error(`No se encontró la orden recién creada`);
+        return order;
+      });
   }
 }

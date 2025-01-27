@@ -10,11 +10,13 @@ import { Category } from './categories.entity';
 import { OrderDetail } from './orderDetails.entity';
 
 @Entity({name:'products'})
+
 export class Product {
+
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
+  @Column({ type: 'varchar', length: 50, unique:true,nullable: false })
   name: string;
 
   @Column({ type: 'text' })
@@ -23,7 +25,7 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
   price: number;
 
-  @Column({ type: 'integer', nullable: false })
+  @Column({ type: 'int', nullable: false })
   stock: number;
 
   @Column({
@@ -34,9 +36,10 @@ export class Product {
   imgUrl: string;
 
   @ManyToOne(() => Category, (category) => category.products)
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
-
+  
   @ManyToMany(() => OrderDetail, (orderderDetail) => orderderDetail.products)
   orderDetails: OrderDetail[];
+  
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 }

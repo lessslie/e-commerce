@@ -1,67 +1,68 @@
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'entities/users.entity';
-import { Repository } from 'typeorm';
+import { User } from 'src/entities/users.entity';
 
+import { Repository } from 'typeorm';
 @Injectable()
 export class UsersRepository {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}
 
-  async getUsers(
-    page: string,
-    limit: string,
-  ): Promise<Omit<User, 'password'>[]> {
-    const users = await this.userRepository.find();
+  async getUsers(): Promise<Omit<User, 'password'>[]> {
+    const users = await this.usersRepository.find();
 
     const userWithoutPass = users.map((user) => {
       const { password, ...cleanUser } = user;
+
       return cleanUser;
     });
     return userWithoutPass;
   }
 
-  async getById(id: string): Promise<Omit<User, 'password'>> {
-    const foundUser = await this.userRepository.findOne({
+  async getUserById(id: string): Promise<Omit<User, 'password'>> {
+    // const foundUser = this.users.find((user) => user.id === Number(id));
+    const foundUser = await this.usersRepository.findOne({
       where: { id },
       relations: {
         orders: true,
       },
     });
-    if (!foundUser) throw new Error(`El usuario de id ${id} no fue econtrado`);
+    if (!foundUser) throw new Error(`El usuario de id ${id} no fue encontrado`);
 
-    const { password, ...userWithoutPassword } = foundUser;
-
-    return userWithoutPassword;
+    const { password, ...withoutPassword } = foundUser;
+    return withoutPassword;
   }
 
   async createUser(user: User): Promise<string> {
-    const newUser = await this.userRepository.save(user);
+    const newUser = await this.usersRepository.save(user);
+
     return newUser.id;
   }
 
-  async upDateUser(id: string, user: User): Promise<string> {
-    await this.userRepository.update(id, user);
-    const updatedUser = await this.userRepository.findOneBy({ id });
-    return updatedUser.id;
+  async updateUser(id: string, user: User): Promise<string> {
+    await this.usersRepository.update(id, user);
+    const updatedUser = await this.usersRepository.findOneBy({ id });
+
+    if (!updatedUser) {
+      throw new Error(`No se encontró el usuario con id ${id}`);
+    }
+
+    return updatedUser.id; // Ahora es seguro acceder a updatedUser .id
   }
 
   async deleteUser(id: string): Promise<string> {
-    const user = await this.userRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
-      throw new Error('Usuario no encontrado');
+      throw new Error('User not found');
     }
-    this.userRepository.remove(user);
-    return `El usuarion con id:${user.id} eliminado exitosamente`;
+    await this.usersRepository.remove(user);
+
+    return user.id;
   }
 
-  async findEmail(email: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { email } });
+  async findEmail(email: string) {
+    return await this.usersRepository.findOne({ where: { email } });
   }
-
-  // async getByName(name: string): Promise<User> {
-  //   return this.users.find((user) => user.name === name);
-  // }
 }
