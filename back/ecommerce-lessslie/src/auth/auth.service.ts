@@ -37,13 +37,13 @@ export class AuthService {
     const user: User | null = await this.usersRepository.findEmail(email);
     
     if (!user) {
-      return 'Email o password incorrectos';
+      return 'Email o password incorrectos 🤔 ​';
     }
     
     if (user.password !== password) {
-      return 'Email o password incorrectos';
+      return 'Email o password incorrectos ​🤔 ​';
     }
 
-    return 'Sesión iniciada exitosamente!';
+    return 'Sesión iniciada exitosamente!🤗 ​';
   }
 }

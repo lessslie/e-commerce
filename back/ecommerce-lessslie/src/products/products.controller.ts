@@ -8,6 +8,7 @@ import {
   Body,
   Query,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from 'src/entities/products.entity';
@@ -43,7 +44,7 @@ export class ProductsController {
 
   @Get(':id')
   getProduct(
-    @Param('id')
+    @Param('id',ParseUUIDPipe)
     productId: string,
   ) {
     return this.productsService.getProduct(productId);
@@ -56,7 +57,7 @@ export class ProductsController {
   }
 
   @Put(':id')
-  updateProduct(@Param('id') id: string, @Body() product: Product) {
+  updateProduct(@Param('id',ParseUUIDPipe) id: string, @Body() product: Product) {
     return this.productsService.updateProduct(id, product);
   }
 
@@ -69,7 +70,7 @@ export class ProductsController {
   // }
   @Delete(':id')
   @UseGuards(AuthGuard)
-  async deleteProduct(@Param('id') id: string): Promise<string> {
+  async deleteProduct(@Param('id',ParseUUIDPipe) id: string): Promise<string> {
     return await this.productsService.deleteProduct(id);
   }
 

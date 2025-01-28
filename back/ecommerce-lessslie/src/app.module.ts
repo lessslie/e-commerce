@@ -5,38 +5,49 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import typeOrmConfig from './config/typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal:true,
-      load:[typeOrmConfig]
+      isGlobal: true,
+      load: [typeOrmConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: async (config: ConfigService): Promise<TypeOrmModuleOptions> => {
-        const typeOrmOptions = config.get<TypeOrmModuleOptions>('typeorm');
-
-        // Asegúrate de que typeOrmOptions no sea undefined
-        if (!typeOrmOptions) {
-          throw new Error('TypeORM configuration is not defined');
+      useFactory: (config: ConfigService) => {
+        const typeOrmConfig = config.get('typeorm');
+        if (!typeOrmConfig) {
+          throw new Error('TypeORM configuration not found');
         }
+        return typeOrmConfig;
+      },
+    }),
+    FileUploadModule,
+    OrdersModule,
+    CategoriesModule,
+    AuthModule,
+    UsersModule,
+    ProductsModule,
+  ],
+})
+export class AppModule {}
 
-        return typeOrmOptions;
-      }
-    })
-    
-    ,AuthModule,ProductsModule,UsersModule,CategoriesModule,OrdersModule],
-    
-  })
-  export class AppModule {}
-  
-  
-  // TypeOrmModule.forRootAsync({
-    //   inject:[ConfigService],
-    //   useFactory: (config : ConfigService)=>{
-      //     return config.get('typeorm');
-      //   },
+  //     useFactory: async (config: ConfigService): Promise<TypeOrmModuleOptions> => {
+  //       const typeOrmOptions = config.get<TypeOrmModuleOptions>('typeorm');
+
+  //       // Asegúrate de que typeOrmOptions no sea undefined
+  //       if (!typeOrmOptions) {
+  //         throw new Error('TypeORM configuration is not defined');
+  //       }
+
+  //       return typeOrmOptions;
+  //     }
+  //   })
+  //   ,AuthModule,ProductsModule,UsersModule,CategoriesModule,OrdersModule,FileUploadModule],
+  // })
+  // export class AppModule {}
+

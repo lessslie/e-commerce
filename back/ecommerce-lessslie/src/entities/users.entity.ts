@@ -20,13 +20,13 @@ export class User {
   @Column({ type: 'int'})
   phone: number;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable:true })
   country: string;
 
   @Column({ type: 'text' })
   address: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable:true })
   city: string;
 
   @OneToMany(() => Order, (order) => order.user)

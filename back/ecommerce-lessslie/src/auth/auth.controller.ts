@@ -1,10 +1,9 @@
-import { Controller,Post,Body } from '@nestjs/common';
+import { Controller,Post,Body, HttpException, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { LoginUserDto } from '../dtos/auth.dto';
 
-interface ICredentials{
-  email:string;
-  password:string
-  }
+
+
 
 @Controller('auth')
 export class AuthController {
@@ -17,8 +16,18 @@ export class AuthController {
   //   return this.authService.getAuthService()
   // }
 
+  // @Post('signin')
+  // signIn(@Body()credentials:LoginUserDto) {
+  //   return this.authService.getAuthLogin(credentials)
+  // }
+
   @Post('signin')
-  signIn(@Body()credentials:ICredentials) {
-    return this.authService.getAuthLogin(credentials)
+  async signIn(@Body() loginUserDto: LoginUserDto) {
+    try {
+      return await this.authService.getAuthLogin(loginUserDto);
+    } catch (error) {
+      throw new HttpException('Credenciales inválidas', HttpStatus.UNAUTHORIZED);
+    }
   }
+
 }
