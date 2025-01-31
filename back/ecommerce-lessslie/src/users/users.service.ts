@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { CreateUserDto } from 'src/dtos/users.dto';
 
@@ -6,6 +6,7 @@ import { CreateUserDto } from 'src/dtos/users.dto';
 
 @Injectable()
 export class UsersService {
+
   constructor(private readonly usersRepository: UsersRepository) {}
   
   async getUsersService() {
@@ -14,11 +15,10 @@ export class UsersService {
   getUserById(id:string){
     return this.usersRepository.getUserById(id);
   }
-
+  
   createUser(newUser:CreateUserDto){
     return this.usersRepository.createUser(newUser);
   }
-
 
 
 
@@ -29,15 +29,6 @@ export class UsersService {
   deleteUser(id:string){
     return this.usersRepository.deleteUser(id);
   }
-
-
-
-
-
-
-
-
-
 
 
 

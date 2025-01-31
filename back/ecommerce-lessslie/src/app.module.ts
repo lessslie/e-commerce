@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
 import { FileUploadModule } from './file-upload/file-upload.module';
+import { JwtModule } from '@nestjs/jwt';
 
 
 @Module({
@@ -32,22 +33,13 @@ import { FileUploadModule } from './file-upload/file-upload.module';
     AuthModule,
     UsersModule,
     ProductsModule,
+    JwtModule.register({
+      global:true,
+      secret:process.env.JWT_SECRET,
+      signOptions:{expiresIn:'1h'},
+    })
   ],
 })
 export class AppModule {}
 
-  //     useFactory: async (config: ConfigService): Promise<TypeOrmModuleOptions> => {
-  //       const typeOrmOptions = config.get<TypeOrmModuleOptions>('typeorm');
-
-  //       // Asegúrate de que typeOrmOptions no sea undefined
-  //       if (!typeOrmOptions) {
-  //         throw new Error('TypeORM configuration is not defined');
-  //       }
-
-  //       return typeOrmOptions;
-  //     }
-  //   })
-  //   ,AuthModule,ProductsModule,UsersModule,CategoriesModule,OrdersModule,FileUploadModule],
-  // })
-  // export class AppModule {}
-
+ 

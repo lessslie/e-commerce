@@ -1,10 +1,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UpdateProductDto } from 'src/dtos/orders.dto';
 import { Category } from 'src/entities/categories.entity';
 import { Product } from 'src/entities/products.entity';
 import { preload } from 'src/helpers/preload';
-
 import { Repository } from 'typeorm';
 
 
@@ -57,14 +57,33 @@ private categoriesRepository : Repository<Category>
     return product;
   }
 
-  async updateProduct(id: string, product: Product): Promise<string> {
-    const updatedProduct = await this.productsRepository.findOneBy({ id });
-    if (!updatedProduct) {
-      throw new Error('Producto no encontrado');
-    }
-    await this.productsRepository.update(id, product);
-    return updatedProduct.id; // Ahora es seguro acceder a updatedProduct.id
+
+
+
+async updateProduct(id: string, updateData: UpdateProductDto): Promise<string> {
+  console.log('ID del producto a actualizar:', id);
+
+  const productToUpdate = await this.productsRepository.findOneBy({ id });
+  if (!productToUpdate) {
+    throw new Error('Producto no encontrado');
   }
+
+  try {
+    const updatedProduct = await this.productsRepository.save({
+      ...productToUpdate, // mantener datos existentes
+      ...updateData // aplicar actualizaciones
+    });
+    console.log('Producto antes de actualizar:', productToUpdate);
+    console.log('Datos recibidos para actualizar:', updateData);
+
+    return updatedProduct.id;
+  } catch (error) {
+    console.error('Error en actualización:', error);
+    throw new Error(`Error al actualizar el producto: ${error.message}`);
+  }
+}
+
+
 
   async addProduct(product: Product): Promise<string> {
 const newProduct = await this.productsRepository.save(product)

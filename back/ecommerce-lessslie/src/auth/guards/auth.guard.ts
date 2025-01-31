@@ -1,29 +1,54 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { Observable } from "rxjs";
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Observable } from 'rxjs';
+import { Role } from 'src/roles.enum';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    canActivate(
-        context: ExecutionContext,
-    ): boolean | Promise<boolean> | Observable<boolean> {
-        const request = context.switchToHttp().getRequest();
-        const authHeader = request.headers.authorization;
+  constructor(private jwtService: JwtService) {}
+canActivate(
+    context: ExecutionContext,
+  ): boolean | Promise<boolean> | Observable<boolean> {
+    const request = context.switchToHttp().getRequest();
+
+    const authHeader = request.headers.authorization;
+    // ahora deberia verse algo asi: 'Bearer: <token>'
+    if (!authHeader)
+      throw new UnauthorizedException('No hay header de autorization');
+
+    const token = authHeader.split(' ')[1];
+    // ['Barer', token]
+    if (!token)
+      throw new UnauthorizedException('No hay header de autorization');
+
+    try {
+      const secret = process.env.JWT_SECRET;
+      const payload = this.jwtService.verify(token, { secret });
+
+      payload.iat = new Date(payload.iat * 1000);
+      payload.exp = new Date(payload.exp * 1000);
+
+      request.user = payload;
 
 
-        if (!authHeader) return false;
+      if(payload.isAdmin){
+        request.user.roles = [Role.Admin];
+      }else{
+        request.user.roles = [Role.User];
+      }
 
-
-        const auth = authHeader.split(' ')[1];
-
-        if (!auth) return false;
-
-        const [email, password] = auth.split(':');
-        
-        if (!email || !password) return false;
-
-        return true;
+      return true;
+      
+    } catch (err) {
+      throw new UnauthorizedException('El token es invalido😲​');
     }
+  }
 }

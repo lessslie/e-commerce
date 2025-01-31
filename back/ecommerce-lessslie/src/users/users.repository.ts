@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from 'src/dtos/users.dto';
 import { User } from 'src/entities/users.entity';
-
 import { Repository } from 'typeorm';
+
 @Injectable()
 export class UsersRepository {
+
+
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}
@@ -22,7 +24,7 @@ export class UsersRepository {
     return userWithoutPass;
   }
 
-  async getUserById(id: string): Promise<Omit<User, 'password'>> {
+  async getUserById(id: string): Promise<Partial<User>> {
     // const foundUser = this.users.find((user) => user.id === Number(id));
     const foundUser = await this.usersRepository.findOne({
       where: { id },
@@ -32,15 +34,19 @@ export class UsersRepository {
     });
     if (!foundUser) throw new Error(`El usuario de id ${id} no fue encontrado`);
 
-    const { password, ...withoutPassword } = foundUser;
-    return withoutPassword;
+    const { password,isAdmin ,...cleanUser } = foundUser;
+    return cleanUser;
   }
 
-  async createUser(user: CreateUserDto): Promise<string> {
-    console.log(user);
-    const newUser = await this.usersRepository.save(user);
+  // async createUser(user: CreateUserDto): Promise<string> {
+  //   console.log(user);
+  //   const newUser = await this.usersRepository.save(user);
 
-    return newUser.id;
+  //   return newUser.id;
+  // }
+  async createUser(user: CreateUserDto): Promise<User> {
+    const newUser = this.usersRepository.create(user);
+    return this.usersRepository.save(newUser);
   }
 
   async updateUser(id: string, user: CreateUserDto): Promise<string> {
@@ -48,22 +54,25 @@ export class UsersRepository {
     const updatedUser = await this.usersRepository.findOneBy({ id });
 
     if (!updatedUser) {
-      throw new Error(`No se encontró el usuario con id ${id}`);
-    }
-
+      throw new Error(`No se encontró el usuario con id ${id}`);}
     return updatedUser.id; // Ahora es seguro acceder a updatedUser .id
   }
+
 
   async deleteUser(id: string): Promise<string> {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
-      throw new Error('User not found');
+      throw new Error('Usuario no encontrado');
     }
-    await this.usersRepository.remove(user);
-
-    return user.id;
+  
+    try {
+      await this.usersRepository.remove(user);
+      return id;
+    } catch (error) {
+      throw new Error(`Error al eliminar el usuario: ${error.message}`);
+    }
   }
-
+  
   async findEmail(email: string) {
     return await this.usersRepository.findOne({ where: { email } });
   }

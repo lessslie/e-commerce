@@ -1,41 +1,49 @@
-
-import { IsString, IsEmail, IsNotEmpty, Length, Matches, IsNumber, IsOptional } from 'class-validator';
+// src/dtos/users.dto.ts
+import { IsString, IsEmail, IsNotEmpty, Length, Matches,
+  IsNumber, IsOptional, MinLength, IsEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
-  @Length(3, 80)
+  @Length(3, 80, { message: 'El nombre debe tener entre 3 y 80 caracteres' })
+  @Transform(({ value }) => value.trim())
   name: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: 'El formato del email no es válido' })
   @IsNotEmpty()
+  @Transform(({ value }) => value.toLowerCase().trim())
   email: string;
 
   @IsString()
   @IsNotEmpty()
-  @Length(8, 15)
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).*$/, {
-    message: 'The password must contain at least: a lowercase letter, a capital letter, a number and a special character 🧐',
+    message: 'La contraseña debe contener al menos: una letra minúscula, una letra mayúscula, un número y un carácter especial 🧐',
   })
   password: string;
 
   @IsString()
   @IsNotEmpty()
-  @Length(3, 80)
+  @Length(3, 80, { message: 'La dirección debe tener entre 3 y 80 caracteres' })
   address: string;
 
-
-  @IsNumber()
+  @IsNumber({}, { message: 'El teléfono debe ser un número válido' })
   @IsNotEmpty()
   phone: number;
 
+  @IsEmpty()
+  isAdmin?: boolean;
+
   @IsString()
   @IsOptional()
-  @Length(5, 20)
+  @Length(2, 50, { message: 'El país debe tener entre 2 y 50 caracteres' })
+  @Transform(({ value }) => value?.trim())
   country?: string;
 
   @IsString()
   @IsOptional()
-  @Length(5, 20)
+  @Length(2, 50, { message: 'La ciudad debe tener entre 2 y 50 caracteres' })
+  @Transform(({ value }) => value?.trim())
   city?: string;
 }

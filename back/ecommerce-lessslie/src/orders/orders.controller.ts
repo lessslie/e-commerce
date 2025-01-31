@@ -1,6 +1,7 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from 'src/dtos/orders.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('orders')
 export class OrdersController {
@@ -12,6 +13,7 @@ export class OrdersController {
   // }
 
   @Post()
+  @UseGuards(AuthGuard)
 async createOrder(@Body() createOrderDto: CreateOrderDto) {
   try {
     return await this.ordersService.addOrder(createOrderDto.userId, createOrderDto.products);
@@ -35,6 +37,7 @@ async createOrder(@Body() createOrderDto: CreateOrderDto) {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard)
   getOrder(@Param('id',ParseUUIDPipe) orderId: string) {
     return this.ordersService.getOrder(orderId);
   }

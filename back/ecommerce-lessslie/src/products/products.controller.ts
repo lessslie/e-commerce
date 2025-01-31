@@ -9,23 +9,27 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from 'src/entities/products.entity';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-
+import { Roles } from 'src/decorators/roles.decorator';
+import { Role } from 'src/roles.enum';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { UpdateProductDto } from 'src/dtos/orders.dto';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
   // @Get()
   // async getProducts():Promise<Products[]> {
-    //   return await this.productsService.getProductsService();
-    // }
-    @Get('seeder')
-    seedProduct() {
-      return this.productsService.seedProducts();
-    }
+  //   return await this.productsService.getProductsService();
+  // }
+  @Get('seeder')
+  seedProduct() {
+    return this.productsService.seedProducts();
+  }
 
   @Get()
   async getProducts(
@@ -44,7 +48,7 @@ export class ProductsController {
 
   @Get(':id')
   getProduct(
-    @Param('id',ParseUUIDPipe)
+    @Param('id', ParseUUIDPipe)
     productId: string,
   ) {
     return this.productsService.getProduct(productId);
@@ -56,10 +60,26 @@ export class ProductsController {
     return this.productsService.addProduct(product);
   }
 
-  @Put(':id')
-  updateProduct(@Param('id',ParseUUIDPipe) id: string, @Body() product: Product) {
-    return this.productsService.updateProduct(id, product);
-  }
+ // products.controller.ts
+ @Put(':id')
+ @Roles(Role.Admin)
+ @UseGuards(AuthGuard, RolesGuard)
+ async updateProduct(
+   @Param('id', ParseUUIDPipe) id: string,
+   @Body() updateData: UpdateProductDto,
+ ) {
+   console.log('Datos recibidos en controlador:', updateData);
+   try {
+     const result = await this.productsService.updateProduct(id, updateData);
+     return { 
+       success: true, 
+       id: result,
+       message: 'Producto actualizado exitosamente'
+     };
+   } catch (error) {
+     throw new BadRequestException(error.message);
+   }
+ }
 
   // @Delete(':id')
   // deleteProduct(
@@ -70,8 +90,7 @@ export class ProductsController {
   // }
   @Delete(':id')
   @UseGuards(AuthGuard)
-  async deleteProduct(@Param('id',ParseUUIDPipe) id: string): Promise<string> {
+  async deleteProduct(@Param('id', ParseUUIDPipe) id: string): Promise<string> {
     return await this.productsService.deleteProduct(id);
   }
-
 }
