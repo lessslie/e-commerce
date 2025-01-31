@@ -25,7 +25,6 @@ export class UsersRepository {
   }
 
   async getUserById(id: string): Promise<Partial<User>> {
-    // const foundUser = this.users.find((user) => user.id === Number(id));
     const foundUser = await this.usersRepository.findOne({
       where: { id },
       relations: {
@@ -37,13 +36,6 @@ export class UsersRepository {
     const { password,isAdmin ,...cleanUser } = foundUser;
     return cleanUser;
   }
-
-  // async createUser(user: CreateUserDto): Promise<string> {
-  //   console.log(user);
-  //   const newUser = await this.usersRepository.save(user);
-
-  //   return newUser.id;
-  // }
   async createUser(user: CreateUserDto): Promise<User> {
     const newUser = this.usersRepository.create(user);
     return this.usersRepository.save(newUser);

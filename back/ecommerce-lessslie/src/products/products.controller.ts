@@ -10,6 +10,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from 'src/entities/products.entity';
@@ -18,7 +19,9 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { Role } from 'src/roles.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UpdateProductDto } from 'src/dtos/orders.dto';
-
+import { CreateProductDto } from 'src/dtos/products.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+@ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
@@ -47,20 +50,20 @@ export class ProductsController {
   /////////////////////////
 
   @Get(':id')
-  getProduct(
-    @Param('id', ParseUUIDPipe)
-    productId: string,
-  ) {
-    return this.productsService.getProduct(productId);
-  }
-
+  async getProduct(@Param('id', ParseUUIDPipe) id: string) {
+    try {
+      return await this.productsService.getProduct(id);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
+   }
+@ApiBearerAuth()
   @Post()
   @UseGuards(AuthGuard)
-  addProduct(@Body() product: Product) {
-    return this.productsService.addProduct(product);
+  addProduct(@Body() productDto: CreateProductDto) {
+    return this.productsService.addProduct(productDto);
   }
-
- // products.controller.ts
+  @ApiBearerAuth()
  @Put(':id')
  @Roles(Role.Admin)
  @UseGuards(AuthGuard, RolesGuard)
@@ -80,17 +83,10 @@ export class ProductsController {
      throw new BadRequestException(error.message);
    }
  }
-
-  // @Delete(':id')
-  // deleteProduct(
-  //   @Param('id')
-  //   id:string
-  // ,){
-  //   return this.productsService.deleteProduct(`el producto con id : ${id} fue eliminado exitosamente!`)
-  // }
+ @ApiBearerAuth()
   @Delete(':id')
   @UseGuards(AuthGuard)
   async deleteProduct(@Param('id', ParseUUIDPipe) id: string): Promise<string> {
     return await this.productsService.deleteProduct(id);
-  }
+   }
 }

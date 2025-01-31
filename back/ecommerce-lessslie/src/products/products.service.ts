@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { Product } from 'src/entities/products.entity';
 import { UpdateProductDto } from 'src/dtos/orders.dto';
+import { CreateProductDto } from '../dtos/products.dto'; 
 
 
 @Injectable()
@@ -18,13 +19,20 @@ async getProductsService(page: number, limit: number): Promise<Product[]> {
 
 
 
-  getProduct(id: string) {
-    return this.productsRepository.getProduct(id);
+async getProduct(id: string) {
+  try {
+    return await this.productsRepository.getProduct(id);
+  } catch (error) {
+    throw new NotFoundException(error.message);
   }
+ }
 
-  addProduct(newProduct: Product) {
-    return this.productsRepository.addProduct(newProduct);
-  }
+  async addProduct(productDto: CreateProductDto) {
+    const newProduct = await this.productsRepository.addProduct(productDto);
+    return {
+      message: 'Producto creado exitosamente',
+      product: newProduct
+    };}
 
   async updateProduct(id: string, updateData: UpdateProductDto) {
     try {
@@ -34,9 +42,9 @@ async getProductsService(page: number, limit: number): Promise<Product[]> {
     }
   }
 
-  deleteProduct(id: string) {
+  async deleteProduct(id: string): Promise<string> {
     return this.productsRepository.deleteProduct(id);
-  }
+   }
 
   seedProducts(){
     return this.productsRepository.seedproducts();

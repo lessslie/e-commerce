@@ -1,21 +1,24 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductDto } from 'src/dtos/orders.dto';
 import { Category } from 'src/entities/categories.entity';
 import { Product } from 'src/entities/products.entity';
 import { preload } from 'src/helpers/preload';
+import { OrderDetail } from 'src/entities/orderDetails.entity';
 import { Repository } from 'typeorm';
 
+import { CreateProductDto } from '../dtos/products.dto';
 
 
-interface PreloadProduct {
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: string;
-}
+
+// interface PreloadProduct {
+//   name: string;
+//   description: string;
+//   price: number;
+//   stock: number;
+//   category: string;
+// }
 
 
 
@@ -26,9 +29,13 @@ export class ProductsRepository {
 @InjectRepository(Product)
 private productsRepository: Repository<Product>,
 @InjectRepository(Category)
-private categoriesRepository : Repository<Category>
+private categoriesRepository : Repository<Category>,
+@InjectRepository(OrderDetail)
+private orderDetailsRepository: Repository<OrderDetail>
   ){}
  
+
+
   async getProducts(page: number, limit: number): Promise<Product[]> {
     console.log('Requesting products with page:', page, 'limit:', limit);
     
@@ -52,10 +59,10 @@ private categoriesRepository : Repository<Category>
   async getProduct(id: string): Promise<Product> {
     const product = await this.productsRepository.findOne({ where: { id } });
     if (!product) {
-      throw new Error('Producto no encontrado');
+      throw new Error(`El producto con ID ${id} no fue encontrado o noexiste`);
     }
     return product;
-  }
+   }
 
 
 
@@ -85,20 +92,60 @@ async updateProduct(id: string, updateData: UpdateProductDto): Promise<string> {
 
 
 
-  async addProduct(product: Product): Promise<string> {
-const newProduct = await this.productsRepository.save(product)
-    return newProduct.id;
-  }
+async addProduct(productDto: CreateProductDto): Promise<Product> {
+  // Crear una nueva instancia de Product con los datos del DTO
+  const product = this.productsRepository.create({
+    ...productDto,
+    imgUrl: productDto.imgUrl || 'https://default-image-url.com/placeholder.jpg'
+  });
+  return await this.productsRepository.save(product);
+}
 
-  async deleteProduct(id: string): Promise<string> {
-    const product = await this.productsRepository.findOneBy({ id });
-    if (!product) {
-      throw new Error('Producto no encontrado');
-    }
-    await this.productsRepository.remove(product); // Asegúrate de esperar la eliminación
-  
-    return product.id; // Cambia this.product.id a product.id
+// products.repository.ts
+// async deleteProduct(id: string): Promise<{ id: string; name: string }> {
+//   // 1. Buscar el producto con sus relaciones
+//   const product = await this.productsRepository.findOne({
+//     where: { id },
+//     relations: ['orderDetails']  // Cargar las relaciones
+//   });
+
+//   if (!product) {
+//     throw new Error('Producto no encontrado');
+//   }
+
+//   // 2. Guardar la información que queremos devolver
+//   const deletedProductInfo = {
+//     id: product.id,
+//     name: product.name
+//   };
+ 
+//   try {
+//     // 3. Primero limpiar las relaciones
+//     if (product.orderDetails) {
+//       product.orderDetails = [];
+//       await this.productsRepository.save(product);
+//     }
+
+//     // 4. Luego eliminar el producto
+//     await this.productsRepository.delete(id);
+
+//     return deletedProductInfo;
+//   } catch (error) {
+//     throw new Error(`Error al eliminar el producto: ${error.message}`);
+//   }
+// }
+async deleteProduct(id: string): Promise<string> {
+  const product = await this.productsRepository.findOneBy({ id });
+  if (!product) {
+    throw new Error('Producto no encontrado');
   }
+  await this.productsRepository.delete(id);
+  return `Producto eliminado exitosamente: ${product.name} `;
+ }
+
+
+
+
 
   async seedproducts(): Promise<string> {
     try {
@@ -119,7 +166,7 @@ const newProduct = await this.productsRepository.save(product)
   
         if (!productCategory) {
           console.log(`Categoría no encontrada: ${element.category}`);
-          continue; // Skip this product instead of throwing error
+          continue;
         }
   
         const product = new Product();

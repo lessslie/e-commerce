@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -13,10 +14,17 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
+  @ApiProperty({
+    description: 'User ID,id del usuario que esta creando la orden de compra',
+    example: '6883628b-bfef-415c-beb7-a043b5df350b',
+  })
   userId: string;
 
   @IsArray()
   @ArrayMinSize(1)
+  @ApiProperty({
+    description: 'Array de productos que se van a comprar',
+  })
   products: Partial<Product>[];
 }
 
