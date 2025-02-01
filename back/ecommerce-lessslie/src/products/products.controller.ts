@@ -11,6 +11,8 @@ import {
   ParseUUIDPipe,
   BadRequestException,
   NotFoundException,
+  DefaultValuePipe,
+  Optional,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { Product } from 'src/entities/products.entity';
@@ -21,11 +23,14 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { UpdateProductDto } from 'src/dtos/orders.dto';
 import { CreateProductDto } from 'src/dtos/products.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+
+
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
-  
+
   @Get('seeder')
   seedProduct() {
     return this.productsService.seedProducts();
@@ -33,8 +38,10 @@ export class ProductsController {
 
   @Get()
   async getProducts(
-    @Query('page') page: string = '1', // Página por defecto es 1
-    @Query('limit') limit: string = '5', // Límite por defecto es 5
+    @Query('page', new DefaultValuePipe('1'))@Optional() page: string, // Página por defecto es 1
+    @Query('limit', new DefaultValuePipe('5'))@Optional() limit: string, // Límite por defecto es 5
+
+  
   ): Promise<Product[]> {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
@@ -42,6 +49,7 @@ export class ProductsController {
     return await this.productsService.getProductsService(
       pageNumber,
       limitNumber,
+
     );
   }
   /////////////////////////
@@ -54,6 +62,8 @@ export class ProductsController {
       throw new NotFoundException(error.message);
     }
    }
+
+
 @ApiBearerAuth()
   @Post()
   @UseGuards(AuthGuard)

@@ -7,16 +7,14 @@ import { CreateProductDto } from '../dtos/products.dto';
 
 @Injectable()
 export class ProductsService {
+
   constructor(private readonly productsRepository: ProductsRepository) {}
 
-//   async getProductsService() {
-//     return await this.productsRepository.getProducts();
-//   }
+
 async getProductsService(page: number, limit: number): Promise<Product[]> {
-        return this.productsRepository.getProducts(page, limit);
+        return this.productsRepository.getProducts(page, limit, );
       }
 ////////////////////////////////////////////
-
 
 
 async getProduct(id: string) {

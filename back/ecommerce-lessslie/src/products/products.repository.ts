@@ -1,5 +1,5 @@
 
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UpdateProductDto } from 'src/dtos/orders.dto';
 import { Category } from 'src/entities/categories.entity';
@@ -7,23 +7,12 @@ import { Product } from 'src/entities/products.entity';
 import { preload } from 'src/helpers/preload';
 import { OrderDetail } from 'src/entities/orderDetails.entity';
 import { Repository } from 'typeorm';
-
 import { CreateProductDto } from '../dtos/products.dto';
-
-
-
-// interface PreloadProduct {
-//   name: string;
-//   description: string;
-//   price: number;
-//   stock: number;
-//   category: string;
-// }
-
 
 
 @Injectable()
 export class ProductsRepository {
+
 
   constructor(
 @InjectRepository(Product)
@@ -37,7 +26,7 @@ private orderDetailsRepository: Repository<OrderDetail>
 
 
   async getProducts(page: number, limit: number): Promise<Product[]> {
-    console.log('Requesting products with page:', page, 'limit:', limit);
+    console.log('productos solicitados por pagina:', page, 'limit:', limit);
     
     const [products, total] = await this.productsRepository.findAndCount({
       skip: (page - 1) * limit,
@@ -45,27 +34,22 @@ private orderDetailsRepository: Repository<OrderDetail>
     });
   
     if (total === 0) {
-      console.log('No products found in database');
+      console.log('No hay stock del producto solicitado');
       return [];
     }
   
-    console.log(`Found ${total} products`);
+    console.log(`hay ${total} productos disponibles`);
     return products;
   }
-  //   async getProducts(): Promise<Product[]> {
-  //     return this.products;
-  //   }
+
 
   async getProduct(id: string): Promise<Product> {
     const product = await this.productsRepository.findOne({ where: { id } });
     if (!product) {
-      throw new Error(`El producto con ID ${id} no fue encontrado o noexiste`);
+      throw new NotFoundException(`El producto con ID ${id} no fue encontrado o noexiste`);
     }
     return product;
    }
-
-
-
 
 async updateProduct(id: string, updateData: UpdateProductDto): Promise<string> {
   console.log('ID del producto a actualizar:', id);

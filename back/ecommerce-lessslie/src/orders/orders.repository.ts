@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderDetail } from '../entities/orderDetails.entity';
 import { Order } from '../entities/orders.entity';
@@ -19,17 +19,34 @@ export class OrdersRepository {
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
   ) {}
+  
+ 
+ 
 
-  async getOrders(): Promise<Order[]> {
-    return this.ordersRepository.find({
-      relations: {
-        user: true,
-        orderDetails: {
-          products: true,
-        },
-      },
-    });
-  }
+  async getOrders(userId?: string, isAdmin?: boolean): Promise<Order[]> {
+    if (isAdmin) {
+        // Si es admin, retorna todas las órdenes
+        return this.ordersRepository.find({
+            relations: {
+                user: true,
+                orderDetails: {
+                    products: true,
+                },
+            },
+        });
+    } else {
+        // Si es usuario normal, solo sus órdenes
+        return this.ordersRepository.find({
+            where: { user: { id: userId } },
+            relations: {
+                user: true,
+                orderDetails: {
+                    products: true,
+                },
+            },
+        });
+    }
+}
 
   async getOrder(id: string): Promise<Order> {
     const order = await this.ordersRepository.findOne({
@@ -59,35 +76,37 @@ export class OrdersRepository {
 
     const productsArray: Product[] = await Promise.all(
       products.map(async (product) => {
+        // Primero buscar el producto sin la condición de stock
         const existingproduct = await this.productRepository.findOneBy({
-          id: product.id,
-          stock: MoreThanOrEqual(1),
+          id: product.id
         });
-
+    
         if (!existingproduct) {
           throw new Error(`Product ${product.id} not found`);
         }
-        if (existingproduct.stock < 1) {
-          throw new Error(`No hay stock de ese producto`);
-        }
-        // totalPrice += existingproduct.price;
-        totalPrice = Number(
-          (totalPrice + Number(existingproduct.price)).toFixed(2),
-        );
 
-        await this.productRepository.update(
-          { id: product.id },
-          { stock: existingproduct.stock - 1 },
-        );
-        return existingproduct;
-      }),
+        // Luego validar el stock
+    if (existingproduct.stock < 1) {
+      throw new HttpException(
+        `No hay stock suficiente del producto "${existingproduct.name}". Stock actual: ${existingproduct.stock}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    totalPrice = Number(
+      (totalPrice + Number(existingproduct.price)).toFixed(2),
     );
+
+    await this.productRepository.update(
+      { id: product.id },
+      { stock: existingproduct.stock - 1 },
+    );
+    return existingproduct;
+  }),
+);
 
     const orderDetail = new OrderDetail();
 
-    // orderDetail.price = Number(Number(totalPrice).toFixed(2));
-    // orderDetail.products = productsArray;
-    // orderDetail.order = newOrder;
     orderDetail.price = totalPrice;
     orderDetail.products = productsArray;
     orderDetail.order = newOrder;

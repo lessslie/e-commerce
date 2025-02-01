@@ -5,7 +5,7 @@ import { Product } from "../entities/products.entity";
 
 @Injectable()
 export class OrdersService{
-    [x: string]: any;
+
     constructor(
         private readonly ordersRepository: OrdersRepository
     ){}
@@ -14,10 +14,10 @@ addOrder(userId: string, products: Partial<Product>[]){
 }
 
 
-async getOrders() {
-    return this.ordersRepository.getOrders();
-  }
-  
+async getOrders(userId: string, isAdmin: boolean) {
+    return this.ordersRepository.getOrders(userId, isAdmin);
+}
+
 getOrder(id: string){
     return this.ordersRepository.getOrder(id);
 }
