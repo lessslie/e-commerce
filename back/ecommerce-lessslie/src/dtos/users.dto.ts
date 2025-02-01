@@ -13,7 +13,7 @@ import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   /**
-   * @example Fulanita
+   * @example "Fulanita"
    * @description Ingresa tu nombre
    */
   @IsString()
@@ -21,8 +21,8 @@ export class CreateUserDto {
   @Length(3, 80, { message: 'El nombre debe tener entre 3 y 80 caracteres' })
   @Transform(({ value }) => value.trim())
   name: string;
- 
- /**
+
+  /**
    * @example "lolan@test.com"
    * @description Email del usuario
    */
@@ -30,8 +30,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   @Transform(({ value }) => value.toLowerCase().trim())
   email: string;
-  
- /**
+
+  /**
    * @example "Admin123!"
    * @description Contraseña del usuario
    */
@@ -43,10 +43,8 @@ export class CreateUserDto {
       'La contraseña debe contener al menos: una letra minúscula, una letra mayúscula, un número y un carácter especial 🧐',
   })
   password: string;
-  
 
-
-/**
+  /**
    * @example "Av avellaneda 123"
    * @description Ingresa tu direccion.
    */
@@ -55,8 +53,7 @@ export class CreateUserDto {
   @Length(3, 80, { message: 'La dirección debe tener entre 3 y 80 caracteres' })
   address: string;
 
-
-   /**
+  /**
    * @example "0114456981515"
    * @description Solo ingresa numeros.
    */
@@ -67,7 +64,6 @@ export class CreateUserDto {
   @IsEmpty()
   isAdmin?: boolean;
 
-
   /**
    * @example "Argentina"
    * @description Argentina.
@@ -77,7 +73,6 @@ export class CreateUserDto {
   @Length(2, 50, { message: 'El país debe tener entre 2 y 50 caracteres' })
   @Transform(({ value }) => value?.trim())
   country?: string;
-
 
   /**
    * @example "Buenos Aires"

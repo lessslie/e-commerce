@@ -25,10 +25,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
-  // @Get()
-  // async getProducts():Promise<Products[]> {
-  //   return await this.productsService.getProductsService();
-  // }
+  
   @Get('seeder')
   seedProduct() {
     return this.productsService.seedProducts();

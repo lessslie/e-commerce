@@ -6,12 +6,6 @@ import { FileUpLoadRepository } from './file-upload.repository';
 import { Product } from 'src/entities/products.entity';
 import { CloudinaryConfig } from '../config/cloudinary';
 
-
-// @Module({
-//   imports: [TypeOrmModule.forFeature([Product])],
-//   controllers: [FileUploadController],
-//   providers: [FileUpLoadService,FileUpLoadRepository,CloudinaryConfig],
-// })
 @Module({
   imports: [TypeOrmModule.forFeature([Product])],
   controllers: [FileUploadController],
