@@ -85,39 +85,6 @@ async addProduct(productDto: CreateProductDto): Promise<Product> {
   return await this.productsRepository.save(product);
 }
 
-// products.repository.ts
-// async deleteProduct(id: string): Promise<{ id: string; name: string }> {
-//   // 1. Buscar el producto con sus relaciones
-//   const product = await this.productsRepository.findOne({
-//     where: { id },
-//     relations: ['orderDetails']  // Cargar las relaciones
-//   });
-
-//   if (!product) {
-//     throw new Error('Producto no encontrado');
-//   }
-
-//   // 2. Guardar la información que queremos devolver
-//   const deletedProductInfo = {
-//     id: product.id,
-//     name: product.name
-//   };
- 
-//   try {
-//     // 3. Primero limpiar las relaciones
-//     if (product.orderDetails) {
-//       product.orderDetails = [];
-//       await this.productsRepository.save(product);
-//     }
-
-//     // 4. Luego eliminar el producto
-//     await this.productsRepository.delete(id);
-
-//     return deletedProductInfo;
-//   } catch (error) {
-//     throw new Error(`Error al eliminar el producto: ${error.message}`);
-//   }
-// }
 async deleteProduct(id: string): Promise<string> {
   const product = await this.productsRepository.findOneBy({ id });
   if (!product) {

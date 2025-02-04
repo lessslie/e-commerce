@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseUUIDPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from 'src/dtos/orders.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -10,32 +10,41 @@ export class OrdersController {
 
 @ApiBearerAuth()
   @Post()
-  @UseGuards(AuthGuard)
-  async createOrder(@Body() createOrderDto: CreateOrderDto) {
+@UseGuards(AuthGuard)
+async createOrder(@Body() createOrderDto: CreateOrderDto) {
     try {
-      return await this.ordersService.addOrder(createOrderDto.userId, createOrderDto.products);
+        return await this.ordersService.addOrder(createOrderDto.userId, createOrderDto.products);
     } catch (error) {
-      // Si es una HttpException, mantener el mensaje original
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      
-      // Para otros tipos de errores, manejar según el mensaje
-      if (error.message.includes('User not found')) {
-        throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
-      }
-      if (error.message.includes('Product not found')) {
-        throw new HttpException('Producto no encontrado', HttpStatus.NOT_FOUND);
-      }
-      
-      // Error genérico si no coincide con ninguno de los anteriores
-      throw new HttpException('Error al crear la orden', HttpStatus.BAD_REQUEST);
+        console.log('Error detallado en createOrder:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+
+        // Si es una HttpException, mantener el mensaje original
+        if (error instanceof HttpException) {
+            throw error;
+        }
+        
+        // Para otros tipos de errores, manejar según el mensaje
+        if (error.message?.includes('User not found')) {
+            throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
+        }
+        if (error.message?.includes('Product not found')) {
+            throw new HttpException('Producto no encontrado', HttpStatus.NOT_FOUND);
+        }
+        if (error.message?.includes('No hay stock')) {
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+        
+        console.log('Error no manejado:', error);
+        throw new HttpException(`Error al crear la orden: ${error.message}`, HttpStatus.BAD_REQUEST);
     }
-  }
+}
 
   @Get()
-  @UseGuards(AuthGuard)  // Agregamos el guard
-  async getOrders(@Req() request) {  // Agregamos el request para obtener el usuario
+  @UseGuards(AuthGuard) 
+  async getOrders(@Req() request) {  
       const user = request.user;
       return this.ordersService.getOrders(user.id, user.isAdmin);
   }
@@ -46,4 +55,21 @@ export class OrdersController {
   getOrder(@Param('id',ParseUUIDPipe) orderId: string) {
     return this.ordersService.getOrder(orderId);
   }
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  async deleteOrder(@Param('id', ParseUUIDPipe) id: string, @Req() request) {
+      const user = request.user;
+      const order = await this.ordersService.getOrder(id);
+  
+      // Verificar si el usuario tiene permiso para eliminar la orden
+      if (!user.isAdmin && order.user.id !== user.id) {
+          throw new HttpException(
+              'No tienes permiso para eliminar esta orden',
+              HttpStatus.FORBIDDEN
+          );
+      }
+  
+      return this.ordersService.deleteOrder(id);
+  }
+
 }

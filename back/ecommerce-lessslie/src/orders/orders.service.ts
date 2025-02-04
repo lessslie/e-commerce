@@ -22,5 +22,10 @@ getOrder(id: string){
     return this.ordersRepository.getOrder(id);
 }
 
+async deleteOrder(id: string) {
+    return await this.ordersRepository.deleteOrder(id);
+}
+
+
 
 }
