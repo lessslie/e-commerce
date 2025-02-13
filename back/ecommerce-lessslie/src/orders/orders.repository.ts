@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderDetail } from '../entities/orderDetails.entity';
 import { Order } from '../entities/orders.entity';
@@ -283,6 +283,7 @@ async addOrder(userId: string, products: Partial<Product>[]): Promise<Order> {
         select: {
             id: true,
             date: true,
+            status: true,
             user: {
                 id: true,
                 name: true,
@@ -303,30 +304,43 @@ async addOrder(userId: string, products: Partial<Product>[]): Promise<Order> {
   return finalOrder;
 }
 
+// async deleteOrder(id: string): Promise<string> {
+//   const order = await this.ordersRepository.findOne({
+//     where: { id },
+//     relations: {
+//       orderDetails: true,
+//       user: true
+//     }
+//   });
+  
+//   if (!order) {
+//     throw new HttpException(
+//       'Orden no encontrada',
+//       HttpStatus.NOT_FOUND
+//     );
+//   }
+//   // Primero eliminamos los orderDetails asociados
+//   if (order.orderDetails) {
+//     await this.orderDetailsRepository.remove(order.orderDetails);
+//   }
+//   // Luego eliminamos la orden
+//   await this.ordersRepository.remove(order);
+  
+//   return `Orden eliminada exitosamente`;
+// }
 async deleteOrder(id: string): Promise<string> {
   const order = await this.ordersRepository.findOne({
-    where: { id },
-    relations: {
-      orderDetails: true,
-      user: true
-    }
+      where: { id }
   });
-  
-  if (!order) {
-    throw new HttpException(
-      'Orden no encontrada',
-      HttpStatus.NOT_FOUND
-    );
-  }
-  // Primero eliminamos los orderDetails asociados
-  if (order.orderDetails) {
-    await this.orderDetailsRepository.remove(order.orderDetails);
-  }
-  // Luego eliminamos la orden
-  await this.ordersRepository.remove(order);
-  
-  return `Orden eliminada exitosamente`;
-}
 
+  if (!order) {
+      throw new NotFoundException('Orden no encontrada');
+  }
+
+  order.status = 'cancelled';
+  await this.ordersRepository.save(order);
+
+  return `Orden ${id} cancelada exitosamente`;
+}
 
 }

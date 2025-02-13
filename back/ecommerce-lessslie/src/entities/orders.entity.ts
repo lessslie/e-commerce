@@ -14,6 +14,9 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ default: 'active' })
+  status: 'active' | 'cancelled';
+
   @Column()
   date: Date;
   

@@ -24,8 +24,6 @@ import { UpdateProductDto } from 'src/dtos/orders.dto';
 import { CreateProductDto } from 'src/dtos/products.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-
-
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
@@ -38,10 +36,8 @@ export class ProductsController {
 
   @Get()
   async getProducts(
-    @Query('page', new DefaultValuePipe('1'))@Optional() page: string, // Página por defecto es 1
-    @Query('limit', new DefaultValuePipe('5'))@Optional() limit: string, // Límite por defecto es 5
-
-  
+    @Query('page', new DefaultValuePipe('1')) @Optional() page: string, // Página por defecto es 1
+    @Query('limit', new DefaultValuePipe('5')) @Optional() limit: string, // Límite por defecto es 5
   ): Promise<Product[]> {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
@@ -49,10 +45,10 @@ export class ProductsController {
     return await this.productsService.getProductsService(
       pageNumber,
       limitNumber,
-
     );
   }
-  /////////////////////////
+////////////////////////////////////////////////
+
 
   @Get(':id')
   async getProduct(@Param('id', ParseUUIDPipe) id: string) {
@@ -61,39 +57,38 @@ export class ProductsController {
     } catch (error) {
       throw new NotFoundException(error.message);
     }
-   }
+  }
 
-
-@ApiBearerAuth()
+  @ApiBearerAuth()
   @Post()
   @UseGuards(AuthGuard)
   addProduct(@Body() productDto: CreateProductDto) {
     return this.productsService.addProduct(productDto);
   }
   @ApiBearerAuth()
- @Put(':id')
- @Roles(Role.Admin)
- @UseGuards(AuthGuard, RolesGuard)
- async updateProduct(
-   @Param('id', ParseUUIDPipe) id: string,
-   @Body() updateData: UpdateProductDto,
- ) {
-   console.log('Datos recibidos en controlador:', updateData);
-   try {
-     const result = await this.productsService.updateProduct(id, updateData);
-     return { 
-       success: true, 
-       id: result,
-       message: 'Producto actualizado exitosamente'
-     };
-   } catch (error) {
-     throw new BadRequestException(error.message);
-   }
- }
- @ApiBearerAuth()
+  @Put(':id')
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard, RolesGuard)
+  async updateProduct(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateData: UpdateProductDto,
+  ) {
+    console.log('Datos recibidos en controlador:', updateData);
+    try {
+      const result = await this.productsService.updateProduct(id, updateData);
+      return {
+        success: true,
+        id: result,
+        message: 'Producto actualizado exitosamente',
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+  @ApiBearerAuth()
   @Delete(':id')
   @UseGuards(AuthGuard)
   async deleteProduct(@Param('id', ParseUUIDPipe) id: string): Promise<string> {
     return await this.productsService.deleteProduct(id);
-   }
+  }
 }
